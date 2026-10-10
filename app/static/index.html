@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ஸ்கேம்ஷீல்டு | ScamShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef1f6;
+    --panel: #ffffff;
+    --ink: #172033;
+    --muted: #55607a;
+    --line: #c3cbdb;
+    --brand: #1f3a8a;
+    --safe: #11693f;   --safe-bg: #e3f4ea;
+    --risky: #8a4b00;  --risky-bg: #fff0d2;
+    --scam: #a8201a;   --scam-bg: #fde6e4;
+    --font: "Noto Sans Tamil", "Latha", "Nirmala UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 20px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); line-height: 1.6; }
+  main { max-width: 42rem; margin: 0 auto; padding: 1.25rem 1rem 4rem; }
+  :focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+
+  header { padding: 0.5rem 0 1rem; }
+  h1 { margin: 0; font-size: 1.9rem; font-weight: 800; color: var(--brand); letter-spacing: 0; }
+  header p { margin: 0.25rem 0 0; color: var(--muted); }
+
+  .card { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 1rem; }
+  label.field { display: block; font-weight: 600; margin-bottom: 0.4rem; }
+  textarea {
+    width: 100%; min-height: 9rem; resize: vertical; font: inherit; color: inherit;
+    border: 2px solid var(--line); border-radius: 10px; padding: 0.75rem; background: #fff;
+  }
+  .row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.75rem; }
+  button { font: inherit; font-weight: 600; border-radius: 10px; padding: 0.7rem 1.1rem; cursor: pointer; border: 2px solid var(--brand); min-height: 3rem; }
+  .primary { background: var(--brand); color: #fff; flex: 1 1 9rem; }
+  .secondary { background: #fff; color: var(--brand); }
+  button[disabled] { opacity: 0.55; cursor: progress; }
+  button.recording { background: var(--scam); border-color: var(--scam); color: #fff; }
+
+  .samples { margin-top: 1rem; }
+  .samples h2 { font-size: 0.9rem; font-weight: 600; color: var(--muted); margin: 0 0 0.4rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chip { font-size: 0.85rem; padding: 0.35rem 0.8rem; min-height: 2.4rem; background: #fff; color: var(--ink); border: 2px solid var(--line); font-weight: 400; }
+
+  #result { margin-top: 1.25rem; }
+  .verdict { border-radius: 14px; border: 3px solid; padding: 1.25rem 1rem 1rem; }
+  .verdict.scam  { background: var(--scam-bg);  border-color: var(--scam);  color: var(--scam); }
+  .verdict.risky { background: var(--risky-bg); border-color: var(--risky); color: var(--risky); }
+  .verdict.safe  { background: var(--safe-bg);  border-color: var(--safe);  color: var(--safe); }
+  .vhead { display: flex; align-items: center; gap: 0.9rem; }
+  .vhead svg { width: 3.4rem; height: 3.4rem; flex: none; }
+  .vhead > div { min-width: 0; }
+  .vtitle { font-size: clamp(1.6rem, 7.5vw, 2.6rem); font-weight: 800; line-height: 1.15; margin: 0; overflow-wrap: anywhere; }
+  .vsub { font-size: 0.8rem; margin: 0; opacity: 0.9; }
+  .verdict .body { color: var(--ink); }
+  .verdict ul { padding-left: 1.2rem; margin: 0.9rem 0 0.5rem; }
+  .verdict li { margin-bottom: 0.45rem; }
+  .verdict li small { display: block; color: var(--muted); font-size: 0.75rem; line-height: 1.35; }
+  .advice { font-weight: 600; margin: 0.6rem 0; }
+  .transcript { font-size: 0.85rem; color: var(--muted); margin: 0 0 0.6rem; }
+  audio { width: 100%; margin-top: 0.4rem; }
+  a.call { display: inline-block; text-decoration: none; background: var(--scam); color: #fff; font-weight: 800; border-radius: 10px; padding: 0.7rem 1.2rem; margin: 0.4rem 0.75rem 0.4rem 0; }
+  .score { font-size: 0.75rem; color: var(--muted); margin-top: 0.6rem; }
+
+  .report { margin-top: 1rem; padding-top: 0.9rem; border-top: 2px dashed var(--line); }
+  .report p { margin: 0 0 0.5rem; font-weight: 600; font-size: 0.9rem; }
+  .report label { display: flex; gap: 0.5rem; font-size: 0.8rem; color: var(--muted); align-items: flex-start; }
+  .report input[type=checkbox] { width: 1.2rem; height: 1.2rem; margin-top: 0.2rem; flex: none; }
+  .report .row button { font-size: 0.85rem; min-height: 2.6rem; }
+  .msg { font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
+  .err { color: var(--scam); font-weight: 600; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .verdict { animation: land 0.28s ease-out; }
+    @keyframes land { from { transform: scale(0.97); opacity: 0.4; } to { transform: scale(1); opacity: 1; } }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>ஸ்கேம்ஷீல்டு</h1>
+    <p>சந்தேகமான செய்தி வந்ததா? பணம் அனுப்பும் முன் இங்கே சரிபாருங்கள்.</p>
+  </header>
+
+  <section class="card" aria-labelledby="inlabel">
+    <label class="field" id="inlabel" for="msg">செய்தியை இங்கே ஒட்டுங்கள் அல்லது பேசுங்கள்</label>
+    <textarea id="msg" placeholder="உதாரணம்: உங்கள் கணக்கு இன்று முடக்கப்படும்…"></textarea>
+    <div class="row">
+      <button class="primary" id="go" type="button">சரிபார்</button>
+      <button class="secondary" id="mic" type="button" aria-pressed="false">பேசுங்கள்</button>
+    </div>
+    <div class="samples">
+      <h2>மாதிரி செய்திகள்</h2>
+      <div class="chips" id="chips"></div>
+    </div>
+  </section>
+
+  <section id="result" aria-live="polite"></section>
+</main>
+
+<script>
+const SAMPLES = [
+  { label: "KYC செய்தி", text: "Dear customer, your SBI account will be blocked today. Update KYC immediately: http://sbi-kyc-update.xyz/login" },
+  { label: "மின் கட்டணம்", text: "உங்கள் மின் இணைப்பு இன்று இரவு துண்டிக்கப்படும். மின் கட்டணம் நிலுவையில் உள்ளது. உடனே இந்த எண்ணை அழைக்கவும்." },
+  { label: "OTP கேட்கிறார்கள்", text: "Ungal OTP sollunga, refund anuppa vendum." },
+  { label: "பரிசு / லாட்டரி", text: "Congratulations! You have won a lucky draw of Rs 25,00,000. Pay processing fee Rs 4999 to claim your prize." },
+  { label: "வங்கி OTP (உண்மையானது)", text: "123456 is your OTP for login. Do not share this OTP with anyone. -SBI" },
+];
+
+const ICONS = {
+  scam:  '<svg viewBox="0 0 48 48" aria-hidden="true"><polygon points="15,3 33,3 45,15 45,33 33,45 15,45 3,33 3,15" fill="currentColor"/><path d="M16 16l16 16M32 16L16 32" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>',
+  risky: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4L46 42H2z" fill="currentColor"/><path d="M24 18v12" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="24" cy="36" r="2.8" fill="#fff"/></svg>',
+  safe:  '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 3l17 6v13c0 11-7 19-17 23C14 41 7 33 7 22V9z" fill="currentColor"/><path d="M15 24l6 6 12-13" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+const SUBTITLE = { scam: "Scam", risky: "Risky", safe: "Safe" };
+
+const $ = (id) => document.getElementById(id);
+const msgEl = $("msg"), goBtn = $("go"), micBtn = $("mic"), out = $("result");
+let lastText = "";
+
+SAMPLES.forEach((s) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "chip"; b.textContent = s.label;
+  b.addEventListener("click", () => { msgEl.value = s.text; msgEl.focus(); });
+  $("chips").appendChild(b);
+});
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function speakFallback(text) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "ta-IN";
+  window.speechSynthesis.speak(u);
+}
+
+function render(r, text) {
+  lastText = text;
+  out.replaceChildren();
+  const box = el("div", "verdict " + r.verdict);
+
+  const head = el("div", "vhead");
+  head.insertAdjacentHTML("beforeend", ICONS[r.verdict]); // static, trusted markup
+  const titles = el("div");
+  titles.append(el("p", "vtitle", r.title_ta), el("p", "vsub", SUBTITLE[r.verdict]));
+  head.appendChild(titles);
+  box.appendChild(head);
+
+  const body = el("div", "body");
+  if (r.transcript) body.appendChild(el("p", "transcript", "நீங்கள் சொன்னது: " + r.transcript));
+
+  if (r.reasons.length) {
+    const ul = el("ul");
+    r.reasons.slice(0, 4).forEach((x) => {
+      const li = el("li", null, x.ta);
+      li.appendChild(el("small", null, x.en));
+      ul.appendChild(li);
+    });
+    body.appendChild(ul);
+  }
+  body.appendChild(el("p", "advice", r.advice_ta));
+
+  if (r.verdict !== "safe") {
+    const call = el("a", "call", "1930 அழைக்க");
+    call.href = "tel:" + r.helpline;
+    body.appendChild(call);
+  }
+
+  if (r.audio_url) {
+    const a = el("audio"); a.controls = true; a.src = r.audio_url;
+    body.appendChild(a);
+    a.play().catch(() => {}); // autoplay may be blocked; the player stays visible
+  } else {
+    const again = el("button", "secondary", "குரலில் கேளுங்கள்");
+    again.type = "button";
+    again.addEventListener("click", () => speakFallback(r.spoken_ta));
+    body.appendChild(again);
+    speakFallback(r.spoken_ta);
+  }
+
+  const score = r.ml_score === null ? "" : " | ML " + r.ml_score;
+  body.appendChild(el("p", "score", "Risk score " + r.score + " (rules " + r.rule_score + score + ")"));
+
+  // Feedback loop: only with explicit consent, and only anonymised text is stored.
+  const rep = el("div", "report");
+  rep.appendChild(el("p", null, "இந்த முடிவு சரியா? மற்றவர்களை காக்க உதவுங்கள்."));
+  const lab = el("label");
+  const cb = el("input"); cb.type = "checkbox"; cb.id = "consent";
+  lab.append(cb, el("span", null, "என் பெயர், எண் இல்லாமல் இந்த செய்தியை பயன்படுத்த ஒப்புக்கொள்கிறேன்."));
+  rep.appendChild(lab);
+  const rrow = el("div", "row");
+  const bScam = el("button", "secondary", "இது மோசடி தான்");
+  const bSafe = el("button", "secondary", "இது மோசடி இல்லை");
+  [bScam, bSafe].forEach((b) => (b.type = "button"));
+  const note = el("p", "msg");
+  async function send(label) {
+    if (!cb.checked) { note.textContent = "முதலில் ஒப்புதல் பெட்டியை தேர்ந்தெடுங்கள்."; return; }
+    const res = await fetch("/api/report", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: lastText, label, consent: true }),
+    });
+    note.textContent = res.ok ? "நன்றி! உங்கள் தகவல் சேமிக்கப்பட்டது." : "சேமிக்க முடியவில்லை.";
+  }
+  bScam.addEventListener("click", () => send("scam"));
+  bSafe.addEventListener("click", () => send("safe"));
+  rrow.append(bScam, bSafe);
+  rep.append(rrow, note);
+  body.appendChild(rep);
+
+  box.appendChild(body);
+  out.appendChild(box);
+  box.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function showError(text) {
+  out.replaceChildren(el("p", "err", text));
+}
+
+async function check() {
+  const text = msgEl.value.trim();
+  if (!text) { showError("முதலில் செய்தியை ஒட்டுங்கள் அல்லது ஒரு மாதிரி செய்தியை தேர்ந்தெடுங்கள்."); return; }
+  goBtn.disabled = true; goBtn.textContent = "சரிபார்க்கிறது…";
+  try {
+    const res = await fetch("/api/check", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice: true }),
+    });
+    if (!res.ok) throw new Error(res.status);
+    render(await res.json(), text);
+  } catch (e) {
+    showError("சர்வரை தொடர்பு கொள்ள முடியவில்லை. சர்வர் இயங்குகிறதா என்று பாருங்கள்.");
+  } finally {
+    goBtn.disabled = false; goBtn.textContent = "சரிபார்";
+  }
+}
+goBtn.addEventListener("click", check);
+
+// ---- Voice input: record in the browser, send to /api/check-voice (Whisper) ----
+let recorder = null, chunks = [];
+micBtn.addEventListener("click", async () => {
+  if (recorder && recorder.state === "recording") { recorder.stop(); return; }
+  if (!navigator.mediaDevices || !window.MediaRecorder) { showError("இந்த உலாவியில் குரல் பதிவு இல்லை."); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recorder = new MediaRecorder(stream); chunks = [];
+    recorder.ondataavailable = (e) => chunks.push(e.data);
+    recorder.onstop = async () => {
+      stream.getTracks().forEach((t) => t.stop());
+      micBtn.classList.remove("recording"); micBtn.setAttribute("aria-pressed", "false");
+      micBtn.textContent = "பேசுங்கள்";
+      const fd = new FormData();
+      fd.append("file", new Blob(chunks, { type: recorder.mimeType || "audio/webm" }), "note.webm");
+      goBtn.disabled = true;
+      try {
+        const res = await fetch("/api/check-voice", { method: "POST", body: fd });
+        if (!res.ok) throw new Error(res.status);
+        const data = await res.json();
+        msgEl.value = data.transcript;
+        render(data, data.transcript);
+      } catch (e) {
+        showError("குரலை புரிந்துகொள்ள முடியவில்லை. செய்தியை எழுதி ஒட்டுங்கள்.");
+      } finally { goBtn.disabled = false; }
+    };
+    recorder.start();
+    micBtn.classList.add("recording"); micBtn.setAttribute("aria-pressed", "true");
+    micBtn.textContent = "நிறுத்து";
+  } catch (e) {
+    showError("மைக்ரோஃபோன் அனுமதி தேவை.");
+  }
+});
+</script>
+</body>
+</html>

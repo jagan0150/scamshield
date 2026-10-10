@@ -1,0 +1,10 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+scikit-learn>=1.3
+joblib>=1.3
+gTTS>=2.5
+# Optional: Tamil speech-to-text for voice notes (large download, needs ffmpeg installed)
+# openai-whisper
+# Dev
+pytest>=8
